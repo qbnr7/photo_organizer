@@ -26,7 +26,6 @@ from pathlib import Path
 
 try:
     from PIL import Image
-    from PIL.ExifTags import TAGS
 except ImportError:
     sys.exit("❌  Pillow not found. Run: pip install pillow pillow-heif")
 
@@ -57,20 +56,37 @@ SKIP_PATTERNS = {".json", ".html", ".csv", ".DS_Store", ".Thumbs.db"}
 # EXIF helpers
 # --------------------------------------------------------------------------- #
 
+EXIF_IFD = 0x8769            # sub-block holding the "taken" dates
+DATETIME_ORIGINAL = 36867    # when the photo was taken
+DATETIME_DIGITIZED = 36868   # when it was digitized (usually the same)
+DATETIME = 306               # when the file was last changed
+
+
 def get_exif_date(path: Path) -> datetime | None:
-    """Return the DateTimeOriginal from EXIF, or None if unavailable."""
+    """
+    Return the photo's date from EXIF, or None if unavailable.
+    Prefers the date taken over the date the file was last changed.
+    Works for HEIC too (via pillow-heif).
+    """
     try:
         with Image.open(path) as img:
-            exif_data = img._getexif()  # type: ignore[attr-defined]
-            if not exif_data:
-                return None
-            for tag_id, value in exif_data.items():
-                tag = TAGS.get(tag_id, "")
-                if tag in ("DateTimeOriginal", "DateTime", "DateTimeDigitized"):
-                    # Format: "YYYY:MM:DD HH:MM:SS"
-                    return datetime.strptime(value, "%Y:%m:%d %H:%M:%S")
+            exif = img.getexif()
+            exif_ifd = exif.get_ifd(EXIF_IFD)
+            candidates = [exif_ifd.get(DATETIME_ORIGINAL),
+                          exif_ifd.get(DATETIME_DIGITIZED),
+                          exif.get(DATETIME)]
     except Exception:
-        pass
+        return None
+
+    for value in candidates:
+        if not value:
+            continue
+        try:
+            # Format: "YYYY:MM:DD HH:MM:SS" (sometimes with trailing junk)
+            return datetime.strptime(str(value).strip("\x00 ")[:19],
+                                     "%Y:%m:%d %H:%M:%S")
+        except ValueError:
+            continue
     return None
 
 
@@ -119,8 +135,10 @@ def convert_heic_to_jpeg(src: Path, dest_dir: Path) -> Path | None:
         dest = dest_dir / (src.stem + "_heic.jpg")
     try:
         with Image.open(src) as img:
-            img = img.convert("RGB")
-            img.save(dest, "JPEG", quality=95)
+            # Keep the photo's metadata (date taken, camera, GPS) in the JPEG
+            exif = img.getexif()
+            img.convert("RGB").save(dest, "JPEG", quality=95,
+                                    exif=exif.tobytes())
         return dest
     except Exception as e:
         print(f"  ⚠️  Could not convert {src.name}: {e}")
@@ -189,7 +207,9 @@ def organize(extract_dir: Path, output_dir: Path) -> dict[str, int]:
             working = src
 
         # ── 2. Determine best date ─────────────────────────────────────────
-        date = best_date(working if working != src else src)
+        # Always read the original file: a freshly converted JPEG has
+        # today's modification time, which would be wrong.
+        date = best_date(src)
 
         # ── 3. Build destination filename with timestamp prefix ─────────────
         timestamp = date.strftime("%Y%m%d_%H%M%S")

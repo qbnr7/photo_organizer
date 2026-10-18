@@ -235,7 +235,7 @@ python3 organize_photos.py ~/Downloads/takeout-2025.zip -o ~/Downloads/photobook
 
 For each photo, the script tries these in order:
 
-1. **Date stored inside the photo** (EXIF metadata)
+1. **Date stored inside the photo** (EXIF metadata): the date it was *taken*, not the date it was last edited. This works for HEIC photos too, and the converted JPEGs keep this information.
 2. **Date in the file name**, e.g. `PXL_20250314_183021.jpg` or `IMG_20250314_183021.jpg`
 3. **The file's last-modified time**, as a last resort
 
@@ -262,7 +262,7 @@ Video files (`.mp4`, `.mov`, `.avi`, etc.) and Google Takeout's `.json` files ar
 | `pillow-heif not found — HEIC files will be skipped` | Same fix as above. |
 | `File not found` | Check the zip's path and name. Use **Tab** to autocomplete it. |
 | `python3: command not found` | Install Python (see [First-time setup](#1-make-sure-python-and-git-are-installed)). |
-| Some photos end up in the wrong month (often the current month) | The script couldn't find a date in the photo or its name and used the file's time instead. This happens most with iPhone HEIC photos, because the date is lost during conversion. Move those photos by hand. |
+| Some photos end up in the wrong month (often the current month) | The script couldn't find a date in the photo or its name and used the file's time instead. This can happen with screenshots or images saved from messages, which often have no date stored. Move those photos by hand. |
 | Last year's photos show up again | Delete `~/Downloads/takeout_extracted` before running (Step 3). |
 
 ---
