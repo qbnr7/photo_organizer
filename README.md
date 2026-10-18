@@ -12,7 +12,7 @@ You probably only run this once a year, so this README is a complete step-by-ste
 - **Converts HEIC → JPEG** on your own computer (no cloud services)
 - **Renames** every photo with a `YYYYMMDD_HHMMSS_` prefix so photo book apps sort them in the correct order
 - **Sets each file's date** (date modified) to when the photo was taken, so apps that sort by file date also get the right order
-- **Organizes** photos into month folders (e.g. `2025-03/`)
+- **Organizes** photos into month folders (e.g. `2025-03/`), or into one single folder with `--flat`
 - **Skips video files** (`.mp4`, `.mov`, etc.), including the video part of Live Photos
 
 ---
@@ -218,12 +218,13 @@ You can delete the zip file and the output folder once your photo book is done. 
 ## Options
 
 ```bash
-python3 organize_photos.py <zip-file> [-o OUTPUT_FOLDER] [--keep-extracted]
+python3 organize_photos.py <zip-file> [-o OUTPUT_FOLDER] [--flat] [--keep-extracted]
 ```
 
 | Option | What it does |
 |--------|--------------|
 | `-o`, `--output` | Choose the output folder. Default: `organized_photos_<current year>` next to the zip. |
+| `--flat` | Put all photos in **one folder** instead of month folders. Handy for uploading everything at once. |
 | `--keep-extracted` | Don't ask about removing the extracted folder; just keep it. |
 
 Example, naming the folder after the photo year:
@@ -231,6 +232,24 @@ Example, naming the folder after the photo year:
 ```bash
 python3 organize_photos.py ~/Downloads/takeout-2025.zip -o ~/Downloads/photobook_2025
 ```
+
+### One big upload instead of month folders
+
+Add `--flat` to get all photos in a single folder, ready to select all and upload in one go:
+
+```bash
+python3 organize_photos.py ~/Downloads/takeout-2025.zip -o ~/Downloads/photobook_2025 --flat
+```
+
+```
+photobook_2025/
+├── 20250112_143022_IMG_4823.jpg
+├── 20250128_093511_IMG_4901.jpg
+├── 20250214_182345_IMG_4967.jpg
+└── ...
+```
+
+The photos still sort in date order, because the file names start with the date and time.
 
 ---
 

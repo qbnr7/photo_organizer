@@ -179,7 +179,8 @@ def extract_zip(zip_path: Path, extract_dir: Path) -> None:
     print("    Done.\n")
 
 
-def organize(extract_dir: Path, output_dir: Path) -> dict[str, int]:
+def organize(extract_dir: Path, output_dir: Path,
+             flat: bool = False) -> dict[str, int]:
     """
     Walk extract_dir, process each image, and copy it into output_dir.
     Returns a dict of {month_folder: count}.
@@ -221,10 +222,11 @@ def organize(extract_dir: Path, output_dir: Path) -> dict[str, int]:
         month_label = date.strftime("%Y-%m")
         new_name = f"{timestamp}_{working.name}"
 
-        month_dir = output_dir / month_label
-        month_dir.mkdir(parents=True, exist_ok=True)
+        # --flat puts everything in one folder; otherwise one per month
+        target_dir = output_dir if flat else output_dir / month_label
+        target_dir.mkdir(parents=True, exist_ok=True)
 
-        dest = month_dir / new_name
+        dest = target_dir / new_name
         safe_copy(working, dest, date)
 
         summary[month_label] = summary.get(month_label, 0) + 1
@@ -252,6 +254,10 @@ def main() -> None:
         help="Output directory (default: same folder as zip, named organized_photos_YYYY)"
     )
     parser.add_argument(
+        "--flat", action="store_true",
+        help="Put all photos in one folder instead of month folders"
+    )
+    parser.add_argument(
         "--keep-extracted", action="store_true",
         help="Keep the temporary extracted folder after processing"
     )
@@ -275,7 +281,7 @@ def main() -> None:
     print("=" * 55 + "\n")
 
     extract_zip(zip_path, extract_dir)
-    summary = organize(extract_dir, output_dir)
+    summary = organize(extract_dir, output_dir, flat=args.flat)
 
     # ── Summary ──────────────────────────────────────────────────────────────
     print("📂  Photos per month:")
@@ -292,7 +298,8 @@ def main() -> None:
             shutil.rmtree(extract_dir)
             print("    Removed.")
 
-    print("\n🎉  All done! Import the month folders into your photo book app.")
+    where = "the folder" if args.flat else "the month folders"
+    print(f"\n🎉  All done! Import {where} into your photo book app.")
     print("    Files are named YYYYMMDD_HHMMSS_… so they sort chronologically.\n")
 
 
