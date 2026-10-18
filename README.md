@@ -11,6 +11,7 @@ You probably only run this once a year, so this README is a complete step-by-ste
 - **Extracts** your Google Takeout zip file
 - **Converts HEIC → JPEG** on your own computer (no cloud services)
 - **Renames** every photo with a `YYYYMMDD_HHMMSS_` prefix so photo book apps sort them in the correct order
+- **Sets each file's date** (date modified) to when the photo was taken, so apps that sort by file date also get the right order
 - **Organizes** photos into month folders (e.g. `2025-03/`)
 - **Skips video files** (`.mp4`, `.mov`, etc.), including the video part of Live Photos
 
@@ -200,7 +201,9 @@ organized_photos_2026/
 
 Note that the output folder is named after the year you **run** the script, not the year the photos were taken. Use `-o` to choose a name yourself (see below).
 
-Open a few month folders and check that the photos look right and are in the right month. Then upload the month folders to your photo book app. Because the file names start with the date and time, they show up in the right order.
+Open a few month folders and check that the photos look right and are in the right month. Then upload the month folders to your photo book app. The photos show up in date order whether the app sorts by **file name**, **date taken** or **file date**: all three match.
+
+> **CEWE tip:** if the photo list has a sort option, choose **name** or **date**. Sorting by name is the safest, because every file name starts with a date, even for screenshots and other images with no date stored inside.
 
 ### Step 6: Clean up
 

@@ -158,9 +158,14 @@ def unique_dest(dest: Path) -> Path:
         counter += 1
 
 
-def safe_copy(src: Path, dest: Path) -> None:
+def safe_copy(src: Path, dest: Path, date: datetime) -> None:
+    """Copy src to dest and set the copy's file date to the photo's date."""
     dest = unique_dest(dest)
-    shutil.copy2(src, dest)   # copy2 preserves timestamps
+    shutil.copy2(src, dest)
+    # Unzipping and HEIC conversion give files today's date. Set it to the
+    # photo's date so apps that sort by file date get the right order too.
+    timestamp = date.timestamp()
+    os.utime(dest, (timestamp, timestamp))
 
 
 # --------------------------------------------------------------------------- #
@@ -220,7 +225,7 @@ def organize(extract_dir: Path, output_dir: Path) -> dict[str, int]:
         month_dir.mkdir(parents=True, exist_ok=True)
 
         dest = month_dir / new_name
-        safe_copy(working, dest)
+        safe_copy(working, dest, date)
 
         summary[month_label] = summary.get(month_label, 0) + 1
         converted += 1
